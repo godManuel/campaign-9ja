@@ -37,9 +37,14 @@ exports.registerUser = asyncWrapper(async (req, res) => {
 
   await user.save();
 
+  const token = jwt.sign(
+    { _id: user._id, name: user.name, email: user.email },
+    process.env.JWT_SECRET
+  );
+
   // sendVerificationEmail(user, res);
 
-  res.status(StatusCodes.CREATED).json({
+  res.header("x-auth-token", token).json({
     status: "SUCCESS",
     message: "Account registered! Proceed to login",
     user: _.pick(user, ["_id", "name", "email", "isVerified"]),
@@ -81,9 +86,14 @@ exports.registerAspirant = asyncWrapper(async (req, res) => {
 
   await aspirant.save();
 
+  const token = jwt.sign(
+    { _id: aspirant._id, name: aspirant.name, email: aspirant.email },
+    process.env.JWT_SECRET
+  );
+
   // sendVerificationEmail(user, res);
 
-  res.status(StatusCodes.CREATED).json({
+  res.header("x-auth-token", token).json({
     status: "SUCCESS",
     message: "Account registered! Proceed to login",
     aspirant: _.pick(aspirant, [

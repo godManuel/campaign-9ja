@@ -252,17 +252,25 @@ exports.addPreviousAchievements = asyncWrapper(async (req, res) => {
       .status(StatusCodes.BAD_REQUEST)
       .json({ message: "Profile not found" });
 
-  const preAchieve = await PreviousAchievements({
+  // Checking if title exists in previous achievements
+  let prevAchieve = await PreviousAchievements.findOne({
     title: req.body.title,
-    desc: req.body.desc,
-    profileId: req.params.id,
+  });
+  if (prevAchieve)
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: "Previous achievement already added" });
+
+  // Adding previous-achievements as an array to our database
+  prevAchieve = await PreviousAchievements.insertMany(req.body, {
+    ordered: true,
   });
 
-  await preAchieve.save();
-  profile.previousAchievements.push(preAchieve);
-
+  // Adding previous-achievements to the aspirant's profile as an array[];
+  profile.previousAchievements.concat(prevAchieve);
   await profile.save();
-  res.status(StatusCodes.CREATED).json({ preAchieve });
+
+  res.status(StatusCodes.CREATED).json({ prevAchieve });
 });
 
 // @desc    Delete aspirant profile
@@ -274,6 +282,12 @@ exports.deleteProfile = asyncWrapper(async (req, res) => {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .json({ message: "Aspirant not found" });
+
+  if (aspirant.email !== req.user.email) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "Access denied! Not your profile" });
+  }
 
   res.status(StatusCodes.OK).json({ aspirant });
 });

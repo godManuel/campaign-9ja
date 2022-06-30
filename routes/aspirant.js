@@ -51,6 +51,6 @@ const { ensureToken } = require("../middlewares/auth");
   ensureToken,
   addPreviousAchievements
 );
-/* Delete aspirant profile */ router.delete("/:id", deleteProfile);
+/* Delete aspirant profile */ router.delete("/:id", ensureToken, deleteProfile);
 
 module.exports = router;
